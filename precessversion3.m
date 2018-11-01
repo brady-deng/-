@@ -27,6 +27,7 @@ T = input('Please input the data length:');
 WT = input('Please input the window length:');
 Tao = input('Please input the SpO2 delay(0-60):');
 spth = input('Please input the SpO2 threshold:');
+% Y = input('Please input whther to preprocess the flow:');
 IP = WT/T;
 M = 1/IP;
 % segT = 
@@ -39,48 +40,18 @@ step = fs/rfs;
 VT = 5;
 %ST是apnea开始之前以及之后想要切除的时长
 ST = 15;
+splowlen = [];
+flowlen = [];
 %Tao血氧之后秒数
 % Tao = 20;
 % Taofs = floor(Tao/rfs*fs);
 % 血氧之后的点数，也就是我们需要主动对齐的时间
-Taofs = floor(Tao*fs);
+Taofs = floor(Tao*rfs);
+% 定义高通滤波器，截止频率为0.05
+[c1,c2] = butter(3,0.05/rfs,'high');
 for i = 1:N
-    % 主动对齐
-    s9191 = ['data.f',num2str(i),' = data.f',num2str(i),'(1:end-Taofs);'];
-    s9192 = ['data.Sp',num2str(i),' = data.Sp',num2str(i),'(Taofs+1:end);'];
-    eval(s9191);
-    eval(s9192);
-    % 确保不同的窗口的数据总长度是一致的
-    s1011 = ['segT = floor(length(data.f',num2str(i),')/(fs*20))*20;'];
-    eval(s1011);
-    s1011 = ['data.f',num2str(i),' = data.f',num2str(i),'(1:segT*fs);'];
-    eval(s1011);
-    s1012 = ['data.Sp',num2str(i),' = data.Sp',num2str(i),'(1:segT*fs);'];
-    eval(s1012);
-    % l（i，1）信号长度
-    s1 = ['l(i,1) = length(data.f',num2str(i),');'];
-    % 信号有多少个完整的窗口
-    s2 = ['l(i,2) = floor(l(i,1)/(T*fs));'];
-    
-    s3 = ['data.f',num2str(i),' = data.f',num2str(i),'(1:l(i,2)*fs*T);'];
-    s10 = ['data.Sp',num2str(i),' = data.Sp',num2str(i),'(1:l(i,2)*fs*T);'];
-    s11 = ['data.So',num2str(i),' = data.So',num2str(i),'(1:l(i,2)*fs*T);'];
-    s12 = ['data.Pul',num2str(i),' = data.Pul',num2str(i),'(1:l(i,2)*fs*T);'];
-    % 时间的个数
-    s4 = ['l(i,3) = length(an.a',num2str(i),');'];
-    % 截取的信号长度
-    s202 = ['l(i,4) = l(i,2)*fs*T;'];
-    % 滑动窗口的总数目
-    s201 = ['l(i,5) = fix((l(i,4)/fs-T)/WT)+1;'];
-    eval(s1);
-    eval(s2);
-    eval(s3);
-    eval(s10);
-%     eval(s11);
-%     eval(s12);
-    eval(s4);
-    eval(s202);
-    eval(s201);
+
+
     % 流量降采样
     % 血氧降采样
     s301 = ['data.f',num2str(i),' = data.f',num2str(i),'(1:step:end);'];
@@ -88,15 +59,25 @@ for i = 1:N
     
     eval(s301);
     eval(s302);
+        % l（i，1）信号长度
+    s1 = ['l(i,1) = length(data.f',num2str(i),');'];
+    % 信号有多少个完整的窗口
+    s2 = ['l(i,2) = floor(l(i,1)/(T*rfs));'];
+    % 时间的个数
+    s4 = ['l(i,3) = length(an.a',num2str(i),');'];
+    % 截取的信号长度
+    s202 = ['l(i,4) = l(i,2)*rfs*T;'];
+    % 滑动窗口的总数目
+    s201 = ['l(i,5) = fix((l(i,4)/rfs-T)/WT)+1;'];
+    eval(s1);
+    eval(s2);
+    eval(s4);
+    eval(s202);
+    eval(s201);
     
     c = 1;
     for a = 1:l(i,3)
-
 %       Periodic breathing (PB)/ Cheynes-Stokes (CS)，标志为1，在后续应该删除
-        s952 = ['if an.a',num2str(i),'(c,3) == 1 temp_start = rfs*an.a',num2str(i),'(c,1);end'];
-        s953 = ['if an.a',num2str(i),'(c,3) == 1 temp_end = rfs*an.a',num2str(i),'(c,2);end'];
-        s954 = ['data.f',num2str(i),' = data.f',num2str(i),'(temp_start:temp_end) = [];'];
-        s955 = ['data.Sp',num2str(i),' = data.Sp',num2str(i),'(temp_start:temp_end) = [];'];
         s956 = ['ann.a',num2str(i),'(c,1) = an.a',num2str(i),'(a,1);'];
         s957 = ['ann.a',num2str(i),'(c,2) = an.a',num2str(i),'(a,1) + an.a',num2str(i),'(a,2);'];
         s958 = ['ann.a',num2str(i),'(c,3) = an.a',num2str(i),'(a,3);'];
@@ -105,17 +86,6 @@ for i = 1:N
         eval(s957);
         eval(s958);
         c = c+1;
-        
-
-%         eval(s9);
-%         eval(s4);
-%         eval(s951);
-%         eval(s952);
-%         eval(s953);
-%         eval(s954);
-%         eval(s955);
-
-        
     end
     %   人工标注的事件的总数
     s205 = ['l(i,6) = length(ann.a',num2str(i),'(:,1));'];
@@ -125,14 +95,19 @@ for i = 1:N
     tempind = zeros(1,templ);
     s1011 = ['tempsp = data.Sp',num2str(i),';'];
     eval(s1011);
+
     %   标记为2的时间段都该删除
     %   寻找血氧低于50水平的时间段
+    s1028 = ['tempfl = data.f',num2str(i),';'];
+    eval(s1028);
+    flowdel = Findflow(tempfl,120);
+    flowdel = reshape(flowdel,[],1);
     splow = find(tempsp<spth);
+    splowlen = [splowlen;splow];
+    flowlen = [flowlen;flowdel];
     %   开始测量的时间段
     indstart = 1:600*rfs;
     tempdel = [];
-%     tempind(splow) = 2;
-%     tempind(indstart) = 2;
     for k = 1:l(i,6)
         s1011 = ['tempan = ann.a',num2str(i),';'];
         eval(s1011);
@@ -144,6 +119,7 @@ for i = 1:N
     end
     inddel = union(splow,indstart);
     inddel = union(inddel,tempdel);
+    inddel = union(inddel,flowdel);
     s1011 = ['data.f',num2str(i),'(inddel) = [];'];
     eval(s1011);
     s1011 = ['data.Sp',num2str(i),'(inddel) = [];'];
@@ -151,15 +127,35 @@ for i = 1:N
     tempind(inddel) = [];
     
     ind{i} = tempind;
-        
+    
 
+    % 主动对齐
+    s9191 = ['data.f',num2str(i),' = data.f',num2str(i),'(1:end-Taofs);'];
+    s9192 = ['data.Sp',num2str(i),' = data.Sp',num2str(i),'(Taofs+1:end);'];
+    eval(s9191);
+    eval(s9192);
+    
+    
+    % 确保不同的窗口的数据总长度是一致的
+    s1011 = ['segT = floor(length(data.f',num2str(i),')/(rfs*180))*180;'];
+    eval(s1011);
+    s1011 = ['data.f',num2str(i),' = data.f',num2str(i),'(1:segT*rfs);'];
+    eval(s1011);
+    s1012 = ['data.Sp',num2str(i),' = data.Sp',num2str(i),'(1:segT*rfs);'];
+    eval(s1012);
+    tempind = tempind(1:segT*rfs);
 
+    
+    % 高通滤波器滤波
+    s1031 = ['data.f',num2str(i),' = filter(c1,c2,data.f',num2str(i),');'];
+    eval(s1031);
+    % 滑动平均滤波
+    s1030 = ['data.f',num2str(i),' = smooth(data.f',num2str(i),',8);'];
+    eval(s1030);
 
-    % 将数据划窗
+    % 滑动切割窗口处理
     s9 = ['tempf = Findw(data.f',num2str(i),',T,WT,rfs);'];
     s10 = ['tempsp = Findw(data.Sp',num2str(i),',T,WT,rfs);'];
-    s11 = ['dataseq.So',num2str(i),' = Findw(data.So',num2str(i),',T,WT,rfs);'];
-    s12 = ['dataseq.Pul',num2str(i),' = Findw(data.Pul',num2str(i),',T,WT,rfs);'];
     
     eval(s9);
     eval(s10);
@@ -169,11 +165,6 @@ for i = 1:N
     tempindsum = sum(tempindw);
     indapnea = find(tempindsum>=VT*rfs);
     tempanno(indapnea) = 1;
-%     for k = 1:length(tempanno)
-%         if sum(tempindw)>=VT*rfs
-%             tempanno(k) = 1;
-%         end
-%     end
     s1011 = ['anno.a',num2str(i),' = tempanno;'];
     eval(s1011);
 %     eval(s11);

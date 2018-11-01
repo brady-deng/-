@@ -2,7 +2,8 @@ function [ out ] = FindSp( input_args,T )
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
 [m,n] = size(input_args);
-temp = round(input_args(1:5,:));
+% temp = round(input_args(1:5,:));
+temp = round(input_args);
 tempmax = max(temp);
 % tempmax = mode(temp);
 out = tempmax;

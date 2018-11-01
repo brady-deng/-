@@ -121,6 +121,8 @@ if index == 0
                 end
             end
         end
+        tempzero = find(tempL == 0);
+%         tempL(tempob) = 
         s1008 = ['spmax = FindSp(d.Sp',num2str(i),',spt);'];
         eval(s1008);
         % 呼吸流量峰值
@@ -136,6 +138,8 @@ if index == 0
         % 低通气次数所占比重，可以0.8297，相对于特征1对阳性比较敏感，但是真阳率上升的还是比较慢，（40，98），（50，99），（10，20）
         s976 = ['f.f',num2str(i),'(3,:) = tempHa./tempL;'];
         eval(s976);
+        s1031 = ['f.f',num2str(i),'(3,tempzero) = 1;'];
+        eval(s1031);
         % 低通气次数，可以0.8219，与特征3类似，应该可以用特征3代替，
         s977 = ['f.f',num2str(i),'(4,:) = tempHa;'];
         eval(s977);
@@ -154,6 +158,8 @@ if index == 0
         % 高于峰值流量百分之九十的比例，对阴性样本比较敏感，应该可以用1号特征代替，AUC0.7773，（50，98）,(60,95)，有一部分重叠，但是不多
         s983 = ['f.f',num2str(i),'(7,:) = tempHaH./tempL;'];
         eval(s983);
+        s1031 = ['f.f',num2str(i),'(7,tempzero) = 0;'];
+        eval(s1031);
         % 频率谱峰度，不行，AUC0.70，对哪一类都不敏感
         s984 = ['f.f',num2str(i),'(8,:) = d.f.kur',num2str(i),';'];
         eval(s984);
@@ -201,6 +207,8 @@ if index == 0
         % 平均通气量
         s1023 = ['f.f',num2str(i),'(17,:) = sum(tempf)./tempL;'];
         eval(s1023);
+        s1031 = ['f.f',num2str(i),'(17,tempzero) = 0;'];
+        eval(s1031);
         for k = 1:length(temp)
             tempind = find(tempf(:,k)~=0);
             % 通气量标准差
@@ -209,12 +217,16 @@ if index == 0
                 eval(s1023);
                 s1023 = ['f.f',num2str(i),'(19,k) = 0;'];
                 eval(s1023);
+                s1028 = ['f.f',num2str(i),'(21,k) = 0;'];
+                eval(s1028);
             else
                 s1023 = ['f.f',num2str(i),'(18,k) = std(tempf(tempind,k));'];
                 eval(s1023);
                 % 通气量极差
                 s1023 = ['f.f',num2str(i),'(19,k) = max(tempf(tempind,k)) - min(tempf(tempind,k));'];
                 eval(s1023);
+                s1028 = ['f.f',num2str(i),'(21,k) = tempmax(k) - mean(tempf(tempind,k));'];
+                eval(s1028);
             end
         end
         % 相当于血氧下降的水平
@@ -280,17 +292,6 @@ else
     eval(s1009);
     eval(s912);
     eval(s913);
-    %     s1009 = ['[tempmax,tempmin] = Findmax(d.f',num2str(index),');'];
-    %     eval(s1009);
-    %     for k = 1:length(hathreh)
-    %         if hathreh(k) > 8.5
-    %             hathreh(k) = 8.5;
-    %         end
-    %         if hathrel(k) < - 8.5
-    %             hathrel(k) = -8.5;
-    %         end
-    %     end
-    %     tempHa低通气次数，tempL是完整呼吸次数
     tempA = zeros(1,length(temp1));
     tempHa = zeros(1,length(temp1));
     tempHaH = zeros(1,length(temp1));
@@ -315,6 +316,7 @@ else
             end
         end
     end
+    tempzero = find(tempL == 0);
     s1008 = ['spmax = FindSp(d.Sp',num2str(index),',spt);'];
     eval(s1008);
     % 呼吸流量峰值
@@ -330,6 +332,8 @@ else
     % 低通气次数所占比重，可以0.8297，相对于特征1对阳性比较敏感，但是真阳率上升的还是比较慢，（40，98），（50，99），（10，20）
     s976 = ['f.f',num2str(index),'(3,:) = tempHa./tempL;'];
     eval(s976);
+    s1031 = ['f.f',num2str(index),'(3,tempzero) = 1;'];
+    eval(s1031);
     % 低通气次数，可以0.8219，与特征3类似，应该可以用特征3代替，
     s977 = ['f.f',num2str(index),'(4,:) = tempHa;'];
     eval(s977);
@@ -348,6 +352,8 @@ else
     % 高于峰值流量百分之九十的比例，对阴性样本比较敏感，应该可以用1号特征代替，AUC0.7773，（50，98）,(60,95)，有一部分重叠，但是不多
     s983 = ['f.f',num2str(index),'(7,:) = tempHaH./tempL;'];
     eval(s983);
+    s1031 = ['f.f',num2str(index),'(7,tempzero) = 0;'];
+    eval(s1031);
     % 频率谱峰度，不行，AUC0.70，对哪一类都不敏感
     s984 = ['f.f',num2str(index),'(8,:) = d.f.kur',num2str(index),';'];
     eval(s984);
@@ -394,14 +400,27 @@ else
     % 平均通气量
     s1023 = ['f.f',num2str(index),'(17,:) = sum(tempf)./tempL;'];
     eval(s1023);
+    s1031 = ['f.f',num2str(index),'(17,tempzero) = 0;'];
+    eval(s1031);
     for k = 1:length(temp)
         tempind = find(tempf(:,k)~=0);
         % 通气量标准差
-        s1023 = ['f.f',num2str(index),'(18,k) = std(tempf(tempind,k));'];
-        eval(s1023);
-        % 通气量极差
-        s1023 = ['f.f',num2str(index),'(19,k) = max(tempf(tempind,k)) - min(tempf(tempind,k));'];
-        eval(s1023);
+        if isempty(tempind)
+            s1023 = ['f.f',num2str(index),'(18,k) = 0;'];
+            eval(s1023);
+            s1023 = ['f.f',num2str(index),'(19,k) = 0;'];
+            eval(s1023);
+            s1028 = ['f.f',num2str(index),'(21,k) = 0;'];
+            eval(s1028);
+        else
+            s1023 = ['f.f',num2str(index),'(18,k) = std(tempf(tempind,k));'];
+            eval(s1023);
+            % 通气量极差
+            s1023 = ['f.f',num2str(index),'(19,k) = max(tempf(tempind,k)) - min(tempf(tempind,k));'];
+            eval(s1023);
+            s1028 = ['f.f',num2str(index),'(21,k) = tempmax(k) - mean(tempf(tempind,k));'];
+            eval(s1028);
+        end
     end
     % 相当于血氧下降的水平
     s1023 = ['f.f',num2str(index),'(20,:) = spmax - mean(d.Sp',num2str(index),');'];
