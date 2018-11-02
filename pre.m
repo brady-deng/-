@@ -1,6 +1,6 @@
-clc;
-clear;
-close all;
+% clc;
+% clear;
+% close all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   This script is for constructing the annotations for this dataset.
 %   The variable T in this script is the length of time for deriving.
@@ -23,10 +23,10 @@ fs = 128;
 N = 25;
 RN = 23;
 %   Here T is the length of the period time.
-T = input('Please input the data length:');
-WT = input('Please input the window length:');
-Tao = input('Please input the SpO2 delay(0-60):');
-spth = input('Please input the SpO2 threshold:');
+% T = input('Please input the data length:');
+% WT = input('Please input the window length:');
+% Tao = input('Please input the SpO2 delay(0-60):');
+% spth = input('Please input the SpO2 threshold:');
 % Y = input('Please input whther to preprocess the flow:');
 IP = WT/T;
 M = 1/IP;
@@ -104,10 +104,6 @@ for i = 1:N
     flowdel = Findflow(tempfl,120);
     flowdel = reshape(flowdel,[],1);
     splow = find(tempsp<spth);
-    templow1 = splow - 180*8;
-    templow2 = splow + 180*8;
-    splow = union(templow1,templow2);
-    splow = splow(find(splow > 0));
     splowlen = [splowlen;splow];
     flowlen = [flowlen;flowdel];
     %   开始测量的时间段
@@ -119,22 +115,9 @@ for i = 1:N
         if tempan(k,3) == 0
             tempind(tempan(k,1)*rfs:tempan(k,2)*rfs) = 1;
         elseif tempan(k,3) == 1
-%             if tempan(k,1) > 180 && tempan(k,2) < length(tempind) - 180
-%                 tempdel = [tempdel,tempan(k,1)*rfs-180*8:tempan(k,2)*rfs+180*8];
-%             elseif tempan(k,1) < 180
-%                 tempdel = [tempdel,0:tempan(k,2)*rfs+180*8];
-%             elseif tempan(k,1) > length(tempind) - 180
-%                 tempdel = [tempdel,tempan(k,1)*rfs-180*8:length(tempind)];
-%             end
             tempdel = [tempdel,tempan(k,1)*rfs:tempan(k,2)*rfs];
         end
     end
-    [startp,endp] = Finddur(tempdel);
-    inter = Findint(tempdel,startp,endp);
-    tempdel = Findmer(tempdel,inter,startp,endp,60*8);
-    splow = [];
-%     flowdel = [];
-%     tempdel = [];
     inddel = union(splow,indstart);
     inddel = union(inddel,tempdel);
     inddel = union(inddel,flowdel);
@@ -160,6 +143,8 @@ for i = 1:N
     tempf = tempf(:,1:end-Tao);
     tempsp = tempsp(:,Tao+1:end);
     tempindw = tempindw(:,1:end-Tao);
+    temptime = 1:length(tempf);
+    
     
     
     % 截取相同长度的数据，避免Tao产生的不同数据长度的影响
@@ -168,19 +153,16 @@ for i = 1:N
     tempsp = tempsp(:,1:segT);
     tempindw = tempindw(:,1:segT);
     temptime = 1:length(tempf);
-    oob(1,i) = length(tempf);
+    
     
     % 删除无效数据
     [mdel,ndel] = find(tempindw == 5);
     ndel = unique(ndel);
-    oob(2,i) = length(ndel);
-    tempob{i} = ndel;
     tempf(:,ndel) = [];
     tempsp(:,ndel) = [];
     tempindw(:,ndel) = [];
     temptime(ndel) = [];
-end
-for i = 1:23
+    
     % 存储以上所得数据
     tempanno = zeros(length(tempf),1);
     tempindsum = sum(tempindw);
@@ -240,7 +222,7 @@ for i = 1:N
     eval(s1011);
     s1011 = ['if i~=3 && i~=9 datar.tsp',num2str(c),' = ds.t.Sp',num2str(i),'; end'];
     eval(s1011);
-    s1011 = ['if i~=3 && i~=9 datar.isp',num2str(c),' = ds.i.i',num2str(i),'; end'];
+    s1011 = ['if i~=3 && i~=9 datar.i',num2str(c),' = ds.i.i',num2str(i),'; end'];
     eval(s1011);
     if i~=3 && i ~= 9
         c = c+1;
@@ -255,7 +237,7 @@ for i = 1:RN
     s216 = ['ds.s.f',num2str(i),' = datar.f',num2str(i),';'];
     s217 = ['ds.s.Sp',num2str(i),' = datar.Sp',num2str(i),';'];
     s218 = ['ds.a.a',num2str(i),' = datar.an.a',num2str(i),';'];
-    s1101 = ['ds.i.i',num2str(i),' = datar.isp',num2str(i),';'];
+    s1101 = ['ds.i.i',num2str(i),' = datar.i',num2str(i),';'];
     eval(s1101);
     eval(s214);
     eval(s215);

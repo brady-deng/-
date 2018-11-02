@@ -41,6 +41,9 @@ for k = 1:length(tempind)
 end
 flowdel = find(indflow == 1);
 ind = union(ind,flowdel);
+[startp,endp] = Finddur(ind);
+inter = Findint(ind,startp,endp);
+ind = Findmer(ind,inter,startp,endp,60*8);
 
 
 
