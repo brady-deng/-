@@ -104,10 +104,14 @@ for i = 1:N
     flowdel = Findflow(tempfl,120);
     flowdel = reshape(flowdel,[],1);
     splow = find(tempsp<spth);
+    [startp,endp] = Finddur(splow);
+    inter = Findint(splow,startp,endp);
+    splow = Findmer(splow,inter,startp,endp,120*8);
     splowlen = [splowlen;splow];
     flowlen = [flowlen;flowdel];
     %   开始测量的时间段
     indstart = 1:600*rfs;
+    indend = (length(tempfl)-900*rfs):length(tempfl);
     tempdel = [];
     for k = 1:l(i,6)
         s1011 = ['tempan = ann.a',num2str(i),';'];
@@ -118,9 +122,20 @@ for i = 1:N
             tempdel = [tempdel,tempan(k,1)*rfs:tempan(k,2)*rfs];
         end
     end
-    inddel = union(splow,indstart);
+    [startp,endp] = Finddur(tempdel);
+    inter = Findint(tempdel,startp,endp);
+    tempdel = Findmer(tempdel,inter,startp,endp,60*8);
+%     splow = [];
+%     flowdel = [];
+%     tempdel = [];
+    inddel = union(indstart,indend);
+    inddel = union(splow,inddel);
     inddel = union(inddel,tempdel);
     inddel = union(inddel,flowdel);
+    [startp,endp] = Finddur(inddel);
+    inter = Findint(inddel,startp,endp);
+    inddel = Findmer(inddel,inter,startp,endp,120*8);
+    
     tempind(inddel) = 5;
     
     % 高通滤波器滤波
@@ -129,6 +144,19 @@ for i = 1:N
     % 滑动平均滤波
     s1030 = ['data.f',num2str(i),' = smooth(data.f',num2str(i),',8);'];
     eval(s1030);
+    
+    
+    
+%     s1105 = ['segT = floor(length(data.f',num2str(i),')/100)*100;'];
+%     eval(s1105);
+%     s1105 = ['data.f',num2str(i),' = data.f',num2str(i),'(1:segT);'];
+%     eval(s1105);
+%     s1105 = ['data.Sp',num2str(i),' = data.Sp',num2str(i),'(1:segT);'];
+%     eval(s1105);
+%     tempind = tempind(1:segT);
+%     oob(3,i) = length(tempind);
+    
+    
     
     % 滑动切割窗口处理
     s9 = ['tempf = Findw(data.f',num2str(i),',T,WT,rfs);'];
@@ -143,26 +171,26 @@ for i = 1:N
     tempf = tempf(:,1:end-Tao);
     tempsp = tempsp(:,Tao+1:end);
     tempindw = tempindw(:,1:end-Tao);
-    temptime = 1:length(tempf);
-    
     
     
     % 截取相同长度的数据，避免Tao产生的不同数据长度的影响
     segT = floor(length(tempf)/120)*120;
-    tempf = tempf(:,1:segT);
-    tempsp = tempsp(:,1:segT);
-    tempindw = tempindw(:,1:segT);
+    tempf = tempf(:,1:(segT-T));
+    tempsp = tempsp(:,1:(segT-T));
+    tempindw = tempindw(:,1:(segT-T));
     temptime = 1:length(tempf);
-    
+    oob(1,i) = length(tempf);
     
     % 删除无效数据
     [mdel,ndel] = find(tempindw == 5);
     ndel = unique(ndel);
+    oob(2,i) = length(ndel);
+    
+    tempob{i} = ndel;
     tempf(:,ndel) = [];
     tempsp(:,ndel) = [];
     tempindw(:,ndel) = [];
     temptime(ndel) = [];
-    
     % 存储以上所得数据
     tempanno = zeros(length(tempf),1);
     tempindsum = sum(tempindw);
@@ -222,7 +250,7 @@ for i = 1:N
     eval(s1011);
     s1011 = ['if i~=3 && i~=9 datar.tsp',num2str(c),' = ds.t.Sp',num2str(i),'; end'];
     eval(s1011);
-    s1011 = ['if i~=3 && i~=9 datar.i',num2str(c),' = ds.i.i',num2str(i),'; end'];
+    s1011 = ['if i~=3 && i~=9 datar.isp',num2str(c),' = ds.i.i',num2str(i),'; end'];
     eval(s1011);
     if i~=3 && i ~= 9
         c = c+1;
@@ -237,7 +265,7 @@ for i = 1:RN
     s216 = ['ds.s.f',num2str(i),' = datar.f',num2str(i),';'];
     s217 = ['ds.s.Sp',num2str(i),' = datar.Sp',num2str(i),';'];
     s218 = ['ds.a.a',num2str(i),' = datar.an.a',num2str(i),';'];
-    s1101 = ['ds.i.i',num2str(i),' = datar.i',num2str(i),';'];
+    s1101 = ['ds.i.i',num2str(i),' = datar.isp',num2str(i),';'];
     eval(s1101);
     eval(s214);
     eval(s215);

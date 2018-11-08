@@ -9,8 +9,9 @@ vardiff = (vargold-varest)/2;
 
 sd = std(vardiff);
 md = mean(vardiff);
-num = 1000;
-step = (max(varmean)-min(varmean))/num;
+% num = 5000;
+% step = (max(varmean)-min(varmean))/num;
+step = 0.1;
 xcoor = min(varmean):step:max(varmean);
 threh = md+2*sd;
 threl = md-2*sd;
@@ -22,6 +23,8 @@ plot(xcoor,0,'black-');
 plot(xcoor,md,'b--');
 xlim([min(varmean)-step,max(varmean)+step]);
 ylim([md-4*sd,md+4*sd]);
+xlabel('(AHIref+AHIpre)/2');
+ylabel('AHIref-AHItest');
 
 
 end

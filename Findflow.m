@@ -43,7 +43,7 @@ flowdel = find(indflow == 1);
 ind = union(ind,flowdel);
 [startp,endp] = Finddur(ind);
 inter = Findint(ind,startp,endp);
-ind = Findmer(ind,inter,startp,endp,60*8);
+ind = Findmer(ind,inter,startp,endp,120*8);
 
 
 

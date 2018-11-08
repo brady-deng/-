@@ -1,15 +1,20 @@
-function [ f ] = feaextract( T,index,flowt,spt )
+function [ f ] = feaextract60( T,index,flowt,spt )
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
 
     s1 = ['data = importdata(''E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\',T,'.mat'');'];
     eval(s1);
+%     index = input('Please input the index of the subject you want to extract:');
+
+    % tic;
+    % T = data.T;
 
     fs = 128;
     N = 23;
     C = 16;
     %   Here C is the downsampling index.
     an = data.a;
+    ind_time = data.i;
     rfs = 8;
     WT = data.T;
     ST = data.WT;
@@ -117,7 +122,7 @@ function [ f ] = feaextract( T,index,flowt,spt )
             end
             tempzero = find(tempL == 0);
     %         tempL(tempob) = 
-            s1008 = ['spmax = FindSp(d.Sp',num2str(i),',spt);'];
+            s1008 = ['spmax = FindSp60(d.Sp',num2str(i),',spt);'];
             eval(s1008);
             % 呼吸流量峰值
         %     s972 = ['f.f',num2str(i),'(1,:) = temp3./temp4;'];
@@ -311,7 +316,7 @@ function [ f ] = feaextract( T,index,flowt,spt )
             end
         end
         tempzero = find(tempL == 0);
-        s1008 = ['spmax = FindSp(d.Sp',num2str(index),',spt);'];
+        s1008 = ['spmax = FindSp60(d.Sp',num2str(index),',spt);'];
         eval(s1008);
         % 呼吸流量峰值
     %     s972 = ['f.f',num2str(index),'(1,:) = temp3./temp4;'];
@@ -424,7 +429,7 @@ function [ f ] = feaextract( T,index,flowt,spt )
         clear tempind tempf
     end
     name = input('Please input the feature file name you want to save:');
-    s13 = ['save(''E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\',name,'.mat'',''f'',''an'',''ft'',''at'',''WT'',''ST'',''temp_l'');'];
+    s13 = ['save(''E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\',name,'.mat'',''f'',''an'',''ft'',''at'',''WT'',''ST'',''temp_l'',''ind_time'');'];
     eval(s13);
 
 end

@@ -15,4 +15,4 @@ spt = spt1;
 feaextract(T,index,flowt,spt);
 T = T2;
 spt = spt2;
-feaextract(T,index,flowt,spt);
+feaextract10(T,index,flowt,spt);

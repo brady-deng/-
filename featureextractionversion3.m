@@ -16,6 +16,7 @@ N = 23;
 C = 16;
 %   Here C is the downsampling index.
 an = data.a;
+ind_time = data.i;
 rfs = 8;
 WT = data.T;
 ST = data.WT;
@@ -430,5 +431,5 @@ else
     clear tempind tempf
 end
 name = input('Please input the feature file name you want to save:');
-s13 = ['save(''E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\',name,'.mat'',''f'',''an'',''ft'',''at'',''WT'',''ST'',''temp_l'');'];
+s13 = ['save(''E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\',name,'.mat'',''f'',''an'',''ft'',''at'',''WT'',''ST'',''temp_l'',''ind_time'');'];
 eval(s13);
