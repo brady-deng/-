@@ -1,9 +1,10 @@
-function [ output_args,start,endcache ] = ahical( label )
+function [ output_args,ahi,start,endcache ] = ahical( label, WT )
 %   计算标签中的总的事件数目，返回的output_args是总的事件数目
 %   start是时间开始时间，endcache是时间结束时间，label输入是
 %   输入的标签
 %   Detailed explanation goes here
 l = length(label);
+fs = 8;
 startflag = 0;
 endflag = 0;
 aha = 0;
@@ -31,6 +32,7 @@ for i = 1:l-1
     end
 end
 output_args = aha;
+ahi = output_args/((length(label)+WT)/3600);
         
 
 

@@ -58,7 +58,7 @@ for i = 1:N
         s8 = ['ann.a',num2str(i),'(a,3) = str2num(an.a',num2str(i),'{1}{a}(5:6));'];
         s9 = ['if an.a',num2str(i),'{2}{a} ~= 0 ann.a',num2str(i),'(a,4) = str2num(an.a',num2str(i),'{2}{a});end'];
         %PBÊ±¼ä±ê×¢
-        s951 = ['if an.a',num2str(i),'{2}{a} == 0 ann.a',num2str(i),'(a,4) = str2num(an.a',num2str(i),'{3}{a});end'];
+        s951 = ['if an.a',num2str(i),'{2}{a} == 0 ann.a',num2str(i),'(a,4) = 20;end'];
         s952 = ['if an.a',num2str(i),'{2}{a} == 0 ann.a',num2str(i),'(a,5) = 1;end'];
         s10 = ['ann.a',num2str(i),'(a,1:3) = ann.a',num2str(i),'(a,1:3) - st(i,:);'];
         
@@ -73,6 +73,8 @@ for i = 1:N
         
         
         eval(s5);
+        s1112 = ['if strcmp(an.a',num2str(i),'{3}{a},''POSSIBLE'') an.a',num2str(i),'{2}{a} = 0;end'];
+        eval(s1112);
         eval(s6);
         eval(s7);
         eval(s8);

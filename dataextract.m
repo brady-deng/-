@@ -26,7 +26,7 @@ for i = 2:28
         
         s4 = ['an.a',num2str(a),'{1} = t',num2str(a),'{1}(1:l(i));'];
         s6 = ['an.a',num2str(a),'{2} = t',num2str(a),'{3}(1:l(i));'];
-        s7 = ['an.a',num2str(a),'{3} = t',num2str(a),'{5}(1:l(i));'];
+        s7 = ['an.a',num2str(a),'{3} = t',num2str(a),'{2}(1:l(i));'];
 
         
         
