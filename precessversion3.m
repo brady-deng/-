@@ -13,7 +13,7 @@ close all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % 原始信号数据
-data = importdata('E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\dataf&Sp.mat');
+data = importdata('E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\flow&sp.mat');
 % 原始人工标注数据
 an = importdata('E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\onlyanno.mat');
 
@@ -27,6 +27,7 @@ T = input('Please input the data length:');
 WT = input('Please input the window length:');
 Tao = input('Please input the SpO2 delay(0-60):');
 spth = input('Please input the SpO2 threshold:');
+Y = input('Please input whether to delete the index:');
 % Y = input('Please input whther to preprocess the flow:');
 IP = WT/T;
 M = 1/IP;
@@ -101,42 +102,61 @@ for i = 1:N
     %   寻找血氧低于50水平的时间段
     s1028 = ['tempfl = data.f',num2str(i),';'];
     eval(s1028);
-    flowdel = Findflow(tempfl,120);
-    flowdel = reshape(flowdel,[],1);
-    splow = find(tempsp<spth);
-    [startp,endp] = Finddur(splow);
-    inter = Findint(splow,startp,endp);
-    splow = Findmer(splow,inter,startp,endp,120*8);
-    splowlen = [splowlen;splow];
-    flowlen = [flowlen;flowdel];
-    %   开始测量的时间段
-    indstart = 1:600*rfs;
-    indend = (length(tempfl)-900*rfs):length(tempfl);
-    tempdel = [];
-    for k = 1:l(i,6)
-        s1011 = ['tempan = ann.a',num2str(i),';'];
-        eval(s1011);
-        if tempan(k,3) == 0
-            tempind(tempan(k,1)*rfs:tempan(k,2)*rfs) = 1;
-        elseif tempan(k,3) == 1
-            tempdel = [tempdel,tempan(k,1)*rfs:tempan(k,2)*rfs];
+    if Y
+        for k = 1:l(i,6)
+            s1011 = ['tempan = ann.a',num2str(i),';'];
+            eval(s1011);
+            if tempan(k,3) == 0
+                tempind(tempan(k,1)*rfs:tempan(k,2)*rfs) = 1;
+    %         elseif tempan(k,3) == 1
+    %             tempdel = [tempdel,tempan(k,1)*rfs:tempan(k,2)*rfs];
+            end
         end
+    else
+        flowdel = Findflow(tempfl,120);
+        flowdel = reshape(flowdel,[],1);
+        splow = find(tempsp<spth);
+        [startp,endp] = Finddur(splow);
+        splow = durextern(splow,startp,endp,60,length(tempfl));
+        [startp,endp] = Finddur(splow);
+        inter = Findint(splow,startp,endp);
+        splow = Findmer(splow,inter,startp,endp,120*8);
+    %     splowlen = [splowlen;splow];
+    %     flowlen = [flowlen;flowdel];
+        %   开始测量的时间段
+        indstart = 1:600*rfs;
+        indend = (length(tempfl)-900*rfs):length(tempfl);
+        tempdel = [];
+        for k = 1:l(i,6)
+            s1011 = ['tempan = ann.a',num2str(i),';'];
+            eval(s1011);
+            if tempan(k,3) == 0
+                tempind(tempan(k,1)*rfs:tempan(k,2)*rfs) = 1;
+            elseif tempan(k,3) == 1
+                tempdel = [tempdel,tempan(k,1)*rfs:tempan(k,2)*rfs];
+            end
+        end
+        [startp,endp] = Finddur(tempdel);
+        inter = Findint(tempdel,startp,endp);
+        tempdel = Findmer(tempdel,inter,startp,endp,120*8);
+    %     splow = [];
+    %     flowdel = [];
+    %     tempdel = [];
+        inddel = union(indstart,indend);
+        inddel = union(splow,inddel);
+    %     inddel = tempdel;
+        inddel = union(inddel,tempdel);
+        inddel = union(inddel,flowdel);
+        [startp,endp] = Finddur(inddel);
+        inter = Findint(inddel,startp,endp);
+        inddel = Findmer(inddel,inter,startp,endp,120*8);
+        tempind(inddel) = 5;
     end
-    [startp,endp] = Finddur(tempdel);
-    inter = Findint(tempdel,startp,endp);
-    tempdel = Findmer(tempdel,inter,startp,endp,60*8);
-%     splow = [];
-%     flowdel = [];
-%     tempdel = [];
-    inddel = union(indstart,indend);
-    inddel = union(splow,inddel);
-    inddel = union(inddel,tempdel);
-    inddel = union(inddel,flowdel);
-    [startp,endp] = Finddur(inddel);
-    inter = Findint(inddel,startp,endp);
-    inddel = Findmer(inddel,inter,startp,endp,120*8);
+%     tempind(splow) = 3;
+%     tempind(indstart) = 5;
+%     tempind(indend) = 5;
     
-    tempind(inddel) = 5;
+    
     
     % 高通滤波器滤波
     s1031 = ['data.f',num2str(i),' = filter(c1,c2,data.f',num2str(i),');'];
@@ -182,19 +202,53 @@ for i = 1:N
     oob(1,i) = length(tempf);
     
     % 删除无效数据
-    [mdel,ndel] = find(tempindw == 5);
-    ndel = unique(ndel);
-    oob(2,i) = length(ndel);
+    [mdel1,ndel1] = find(tempindw == 5);
+%     ndel = unique(ndel);
+%     oob(2,i) = length(ndel);
+%     [mdel2,ndel2] = find(tempindw == 3);
+%     ndel2 = ndel2 - Tao;
+%     ndel2 = ndel2(find(ndel2>0));
+%     ndel = union(ndel1,ndel2);
+    ndel = ndel1;
     
     tempob{i} = ndel;
     tempf(:,ndel) = [];
     tempsp(:,ndel) = [];
     tempindw(:,ndel) = [];
     temptime(ndel) = [];
+    
+    % 删除全时长数据中的不可靠数据
+%     s1113 = ['data.f',num2str(i),'(inddel) = [];'];
+%     eval(s1113);
+%     s1113 = ['data.Sp',num2str(i),'(inddel) = [];'];
+%     eval(s1113);
+    
+    
     % 存储以上所得数据
     tempanno = zeros(length(tempf),1);
     tempindsum = sum(tempindw);
     indapnea = find(tempindsum>=VT*rfs);
+    if length(indapnea) ~= 0
+        [tempob1,tempob2] = Finddur(indapnea);
+        tempob1 = indapnea(tempob1);
+        tempob2 = indapnea(tempob2);
+        tempob1 = tempob1-10;
+        tempob2 = tempob2+10;
+        tempind1119 = [];
+        for co = 1:length(tempob1)
+            if tempob1(co)>0
+                if tempob2(co)<length(tempanno)
+                    tempind1119 = [tempind1119,tempob1(co):tempob2(co)];
+                else
+                    tempind1119 = [tempind1119,tempob1(co):length(tempanno)];
+                end
+            else
+                tempind1119 = [tempind1119,1:tempob2(co)];
+            end
+        end
+        tempind1119 = unique(tempind1119);
+        tempanno(tempind1119) = 2;
+    end
     tempanno(indapnea) = 1;
     s1011 = ['anno.a',num2str(i),' = tempanno;'];
     eval(s1011);
@@ -211,8 +265,10 @@ for i = 1:N
     tf = reshape(tempf(:,1:T/WT:end),1,[]);
     tsp = reshape(tempsp(:,1:T/WT:end),1,[]);
     s214 = ['ds.t.f',num2str(i),' = tf;'];
+%     s214 = ['ds.t.f',num2str(i),' = data.f',num2str(i),';'];
     eval(s214);
     s215 = ['ds.t.Sp',num2str(i),' = tsp;'];
+%     s215 = ['ds.t.Sp',num2str(i),' = data.Sp',num2str(i),';'];
     eval(s215);
 
     

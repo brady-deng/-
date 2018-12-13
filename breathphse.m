@@ -9,7 +9,7 @@ waittime = floor(waitsec*rfs);
 numcount = 50;
 for i = 1:n
     c = 1;
-    for count = 4:m-3
+    for count = 3:m-2
         if numcount < waittime
             numcount = numcount+1;
             continue
@@ -32,7 +32,7 @@ for i = 1:n
                 numcount = 0;
             end
         end
-        numcount = numcount+1;
+%         numcount = numcount+1;
     end
 end
 

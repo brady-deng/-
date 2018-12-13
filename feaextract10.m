@@ -154,6 +154,9 @@ function [ f ] = feaextract10( T,index,flowt,spt )
             % 从最小值到最大值的斜率，没啥用，不太行，这个特征没什么用，可以考虑，会有分布的不同
             s981 = ['f.f',num2str(i),'(6,:) = 100*(var3-var1)./(var4-var2);'];
             eval(s981);
+            tempequl = find((var4-var2) == 0);
+            s1120 = ['f.f',num2str(i),'(6,tempequl) = 0;'];
+            eval(s1120);
             % 高于峰值流量百分之九十的比例，对阴性样本比较敏感，应该可以用1号特征代替，AUC0.7773，（50，98）,(60,95)，有一部分重叠，但是不多
             s983 = ['f.f',num2str(i),'(7,:) = tempHaH./tempL;'];
             eval(s983);
@@ -348,6 +351,9 @@ function [ f ] = feaextract10( T,index,flowt,spt )
         % 从最小值到最大值的斜率，没啥用，不太行，这个特征没什么用，可以考虑，会有分布的不同
         s981 = ['f.f',num2str(index),'(6,:) = 100*(var3-var1)./(var4-var2);'];
         eval(s981);
+        tempequl = find((var4-var2) == 0);
+        s1120 = ['f.f',num2str(index),'(6,tempequl) = 0;'];
+        eval(s1120);
         % 高于峰值流量百分之九十的比例，对阴性样本比较敏感，应该可以用1号特征代替，AUC0.7773，（50，98）,(60,95)，有一部分重叠，但是不多
         s983 = ['f.f',num2str(index),'(7,:) = tempHaH./tempL;'];
         eval(s983);

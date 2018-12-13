@@ -1,4 +1,4 @@
-function [ output_args ] = ahifit( goldvar,prevar )
+function [ a ] = ahifit( goldvar,prevar )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 figure(),scatter(goldvar,prevar);

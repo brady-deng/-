@@ -13,7 +13,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % 原始信号数据
-data = importdata('E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\dataf&Sp.mat');
+data = importdata('E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\flow&sp.mat');
 % 原始人工标注数据
 an = importdata('E:\文档\MATLAB程序\ucd-process\UCD Sleep Apnea Database\数据\onlyanno.mat');
 
@@ -105,10 +105,12 @@ for i = 1:N
     flowdel = reshape(flowdel,[],1);
     splow = find(tempsp<spth);
     [startp,endp] = Finddur(splow);
+    splow = durextern(splow,startp,endp,60,length(tempfl));
+    [startp,endp] = Finddur(splow);
     inter = Findint(splow,startp,endp);
     splow = Findmer(splow,inter,startp,endp,120*8);
-    splowlen = [splowlen;splow];
-    flowlen = [flowlen;flowdel];
+%     splowlen = [splowlen;splow];
+%     flowlen = [flowlen;flowdel];
     %   开始测量的时间段
     indstart = 1:600*rfs;
     indend = (length(tempfl)-900*rfs):length(tempfl);
@@ -124,26 +126,26 @@ for i = 1:N
     end
     [startp,endp] = Finddur(tempdel);
     inter = Findint(tempdel,startp,endp);
-    tempdel = Findmer(tempdel,inter,startp,endp,60*8);
+    tempdel = Findmer(tempdel,inter,startp,endp,120*8);
 %     splow = [];
 %     flowdel = [];
 %     tempdel = [];
     inddel = union(indstart,indend);
     inddel = union(splow,inddel);
+%     inddel = tempdel;
     inddel = union(inddel,tempdel);
     inddel = union(inddel,flowdel);
     [startp,endp] = Finddur(inddel);
     inter = Findint(inddel,startp,endp);
     inddel = Findmer(inddel,inter,startp,endp,120*8);
-    
     tempind(inddel) = 5;
     
-    % 高通滤波器滤波
-    s1031 = ['data.f',num2str(i),' = filter(c1,c2,data.f',num2str(i),');'];
-    eval(s1031);
-    % 滑动平均滤波
-    s1030 = ['data.f',num2str(i),' = smooth(data.f',num2str(i),',8);'];
-    eval(s1030);
+%     % 高通滤波器滤波
+%     s1031 = ['data.f',num2str(i),' = filter(c1,c2,data.f',num2str(i),');'];
+%     eval(s1031);
+%     % 滑动平均滤波
+%     s1030 = ['data.f',num2str(i),' = smooth(data.f',num2str(i),',8);'];
+%     eval(s1030);
     
     
     
@@ -195,6 +197,27 @@ for i = 1:N
     tempanno = zeros(length(tempf),1);
     tempindsum = sum(tempindw);
     indapnea = find(tempindsum>=VT*rfs);
+    if length(indapnea) ~= 0
+        [tempob1,tempob2] = Finddur(indapnea);
+        tempob1 = indapnea(tempob1);
+        tempob2 = indapnea(tempob2);
+        tempob1 = tempob1-10;
+        tempob2 = tempob2+10;
+        tempind1119 = [];
+        for co = 1:length(tempob1)
+            if tempob1(co)>0
+                if tempob2(co)<length(tempanno)
+                    tempind1119 = [tempind1119,tempob1(co):tempob2(co)];
+                else
+                    tempind1119 = [tempind1119,tempob1(co):length(tempanno)];
+                end
+            else
+                tempind1119 = [tempind1119,1:tempob2(co)];
+            end
+        end
+        tempind1119 = unique(tempind1119);
+        tempanno(tempind1119) = 2;
+    end
     tempanno(indapnea) = 1;
     s1011 = ['anno.a',num2str(i),' = tempanno;'];
     eval(s1011);

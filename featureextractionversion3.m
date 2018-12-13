@@ -156,6 +156,9 @@ if index == 0
         % 从最小值到最大值的斜率，没啥用，不太行，这个特征没什么用，可以考虑，会有分布的不同
         s981 = ['f.f',num2str(i),'(6,:) = 100*(var3-var1)./(var4-var2);'];
         eval(s981);
+        tempequl = find((var4-var2) == 0);
+        s1120 = ['f.f',num2str(i),'(6,tempequl) = 0;'];
+        eval(s1120);
         % 高于峰值流量百分之九十的比例，对阴性样本比较敏感，应该可以用1号特征代替，AUC0.7773，（50，98）,(60,95)，有一部分重叠，但是不多
         s983 = ['f.f',num2str(i),'(7,:) = tempHaH./tempL;'];
         eval(s983);
@@ -167,6 +170,8 @@ if index == 0
         % 呼吸停滞次数,不太行，但是是不是可以用来确定Apnea？，不行，对哪一类都不敏感，看起来还可以呀，
         s911 = ['f.f',num2str(i),'(9,:) = tempA./tempL;'];
         eval(s911);
+        s1120 = ['f.f',num2str(i),'(9,tempzero) = 1;'];
+        eval(s1120);
         % 血氧低于91的时长
         s9191 = ['f.f',num2str(i),'(10,:) = Findlow(d.Sp',num2str(i),',91);'];
         % 血氧低于92的时长，会有区别，但是重叠的部分同样会很多
@@ -350,6 +355,9 @@ else
     % 从最小值到最大值的斜率，没啥用，不太行，这个特征没什么用，可以考虑，会有分布的不同
     s981 = ['f.f',num2str(index),'(6,:) = 100*(var3-var1)./(var4-var2);'];
     eval(s981);
+    tempequl = find((var4-var2) == 0);
+    s1120 = ['f.f',num2str(index),'(6,tempequl) = 0;'];
+    eval(s1120);
     % 高于峰值流量百分之九十的比例，对阴性样本比较敏感，应该可以用1号特征代替，AUC0.7773，（50，98）,(60,95)，有一部分重叠，但是不多
     s983 = ['f.f',num2str(index),'(7,:) = tempHaH./tempL;'];
     eval(s983);
@@ -361,6 +369,8 @@ else
     % 呼吸停滞次数,不太行，但是是不是可以用来确定Apnea？，不行，对哪一类都不敏感，看起来还可以呀，
     s911 = ['f.f',num2str(index),'(9,:) = tempA./tempL;'];
     eval(s911);
+    s1120 = ['f.f',num2str(index),'(9,tempzero) = 1;'];
+    eval(s1120);
     % 血氧低于91的时长
     s9191 = ['f.f',num2str(index),'(10,:) = Findlow(d.Sp',num2str(index),',91);'];
     % 血氧低于92的时长，会有区别，但是重叠的部分同样会很多
